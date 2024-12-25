@@ -53,6 +53,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# User model
+AUTH_USER_MODEL = 'user.user'
+
 ROOT_URLCONF = 'scrapify.urls'
 
 TEMPLATES = [

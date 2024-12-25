@@ -11,8 +11,7 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_admin(self, username, password, **extra_fields):
-        extra_fields.setdefault('is_admin', True)
+    def create_superuser(self, username, password, **extra_fields):
         extra_fields.setdefault('is_superuser', True)
 
         return self.create_user(
@@ -24,25 +23,12 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=20, unique=True, null=False)
     password = models.CharField(max_length=128, null=False)
-    is_admin = models.BooleanField(default=False, null=False)
     name = models.CharField(max_length=128, null=True)
-
-    # Relacionar las relaciones inversas para evitar los choques
-    groups = models.ManyToManyField(
-        'auth.Group',
-        related_name='custom_user_set',
-        blank=True
-    )
-    user_permissions = models.ManyToManyField(
-        'auth.Permission',
-        related_name='custom_user_permissions_set',
-        blank=True
-    )
-
+    
     objects = UserManager()
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['password', 'username']
+    REQUIRED_FIELDS = ['password']
 
     def __str__(self):
         return self.username
