@@ -1,0 +1,20 @@
+.form-group input {
+    height: 45px; 
+    padding: 10px; 
+    font-size: 16px; 
+    border-radius: 5px; 
+    border: 1px solid #ccc; 
+    width: 100%; 
+    box-sizing: border-box; 
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+@media (max-width: 576px) {
+    .card {
+        width: 90%;
+    }
+}

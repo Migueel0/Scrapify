@@ -9,6 +9,7 @@
 
     <link rel="stylesheet"  href="{% static 'css/bootstrap.css' %}">
     <link rel="stylesheet"  href="{% static 'css/animations.css' %}">
+    <link rel="stylesheet"  href="{% static 'css/forms.css' %}">
 
 
     {% block extra_css %}{% endblock %}
@@ -42,7 +43,7 @@
                     <ul class="navbar-nav mb-2 mb-lg-0">
                         {% if user.is_authenticated %}
                             <li class="nav-item">
-                                <a class="nav-link" href="/profile">Profile</a>
+                                <a class="nav-link" href="/profile">{{user.username}}</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link btn btn-outline-danger btn-sm btn-animated" href="/logout">Logout</a>
