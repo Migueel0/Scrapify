@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="card shadow-lg border-0 rounded-lg" style="width: 400px; animation: fadeIn 1s ease-in-out;">
+        <div class="card-header text-center text-white" style="background-color: #4a90e2;">
+            <h3 class="mb-0" style="animation: slideDown 0.8s ease-in-out;">Create an Account</h3>
+            <p class="mb-0" style="font-size: 14px;">Sign up to Scrapify</p>
+        </div>
+        <div class="card-body px-4 py-5">
+            <form method="POST">
+                {% csrf_token %}
+                <!-- Mostrar errores generales de formulario -->
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <ul>
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+                
+                <div class="form-group mb-4">
+                    {{ form.username.label_tag }}
+                    {{ form.username }}
+                </div>
+                <div class="form-group mb-4">
+                    {{ form.name.label_tag }}
+                    {{ form.name }}
+                </div>
+                <div class="form-group mb-4">
+                    {{ form.password.label_tag }}
+                    {{ form.password }}
+                </div>
+                <div class="form-group mb-4">
+                    {{ form.confirm_password.label_tag }}
+                    {{ form.confirm_password }}
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg w-100" 
+                        style="background-color: #4a90e2; border-color: #4a90e2; transition: background-color 0.3s ease, transform 0.2s;">
+                    Sign up
+                </button>
+            </form>
+        </div>
+        <div class="card-footer text-center bg-light py-3">
+            <p class="mb-0">
+                Already have an account? 
+                <a href="{% url 'login' %}" 
+                   class="text-primary text-decoration-none fw-bold" 
+                   style="transition: color 0.3s ease;">
+                   Log in
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+[
+    {
+        "model": "user.User",
+        "pk": 1,
+        "fields": {
+            "username": "user1",
+            "password": "pbkdf2_sha256$870000$uCpLp4Jr1nsGekDx2SXVyU$k/xWiSSSPAhwdykhzSRVKUOeLVmuxQqDM02E+T7poAQ=",
+            "name": "User"
+        }
+    }
+]
