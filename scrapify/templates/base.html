@@ -33,6 +33,11 @@
                         <li class="nav-item">
                             <a class="nav-link" href="#">Related products</a>
                         </li>
+                        {% if user.is_superuser %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Update product list</a>
+                        </li>
+                        {% endif %}
                     </ul>
                     <ul class="navbar-nav mb-2 mb-lg-0">
                         {% if user.is_authenticated %}
