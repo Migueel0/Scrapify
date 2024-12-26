@@ -24,7 +24,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=20, unique=True, null=False)
     password = models.CharField(max_length=128, null=False)
     name = models.CharField(max_length=128, null=True)
-    
+
     objects = UserManager()
 
     USERNAME_FIELD = 'username'

@@ -12,6 +12,19 @@
         <div class="card-body px-4 py-5">
             <form method="POST">
                 {% csrf_token %}
+                <!-- Mostrar errores generales de formulario -->
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <ul>
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+                
                 <div class="form-group mb-4">
                     {{ form.username.label_tag }}
                     {{ form.username }}
