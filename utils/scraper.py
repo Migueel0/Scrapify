@@ -38,7 +38,9 @@ class Scraper:
 
     def get_html(self, url):
         headers = {
-            'User-Agent': random.choice(USER_AGENTS)
+            'User-Agent': random.choice(USER_AGENTS),
+                "Accept-Language": "en-US,en;q=0.9",
+                "Referer": url,
         }
         req = request.Request(url, headers=headers)
         try:
@@ -62,11 +64,11 @@ class Scraper:
             print(f"Error parsing HTML for URL: {url}. Exception: {e}")
             return None
     
-    def amazon_scraper(self):
+    def amazon_scraper(self) -> None:
         base_url = self.url
         soup = self.get_soup(base_url)
         links = []
-        print(soup)
+    
         if soup is None:
             print(f"Failed to scrape base URL: {base_url}")
             return
@@ -74,10 +76,19 @@ class Scraper:
         cards = soup.find_all('div', class_='a-cardui')
         
         for card in cards:
-            link = card.find('a', class_='a-link-normal')['href']
-            links.append(base_url + link)
+            link = card.find('a', class_='a-link-normal')
+            if link:
+                link = link['href']
+            else:
+                continue
             
+            links.append(base_url + link)
+        i = 0
         for link in links:
+            if i == 5: # scrape only 5 items of each link
+                break
+            i += 1
+            
             soup = self.get_soup(link)
             if soup is None:
                 print(f"Failed to scrape base URL: {base_url}")
