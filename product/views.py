@@ -1,3 +1,4 @@
+import random
 import threading
 from django.shortcuts import render
 from django.core.paginator import Paginator
@@ -16,7 +17,9 @@ def scraper(request, store):
     return render(request, 'scraper.html')
 
 def get_all_products(request):
-    product_list = Product.objects.all()
+    product_list = list(Product.objects.all())
+    random.seed(1)
+    random.shuffle(product_list)  
     paginator = Paginator(product_list, 12)
 
     page_number = request.GET.get('page')

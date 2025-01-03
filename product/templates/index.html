@@ -15,10 +15,17 @@
                 </div>
                 <div class="card-body">
                     <h5 class="card-title" style="height: 3em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ product.name }}</h5>
-                    <p class="card-text"><strong>${{ product.price }}</strong></p>
+                    <p class="card-text"><strong>{{ product.price }}</strong></p>
                     <div class="d-flex justify-content-between align-items-center">
                         <!-- Product Rating -->
                         {% if product.rating %}
+                        <div class="rating">
+                            {%if product.rating == 5.0%}
+                            <span>Rating: 5/5</span>
+                            {%else%}
+                            <span>Rating: {{product.rating}}/5</span>
+                            {%endif%}
+                        </div>
                         {% endif %}
                         <a href="{{ product.link }}" class="btn btn-primary btn-sm" target="_blank">View Product</a>
                     </div>
@@ -53,3 +60,13 @@
     </nav>
 </div>
 {% endblock %}
+
+<style>
+    .rating .fa-star {
+        color: #ddd;
+    }
+    
+    .rating .fa-star.checked {
+        color: #f39c12;
+    }
+</style>
