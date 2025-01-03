@@ -35,9 +35,18 @@
                             <a class="nav-link" href="#">Related products</a>
                         </li>
                         {% if user.is_superuser %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Update product list</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Update product list
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <li><a href="{% url 'scraper' store='amazon' %}">Amazon products</a></li>
+                                <li><a class="dropdown-item" href="#">Option 2</a></li>
+                                <li><a class="dropdown-item" href="#">Option 3</a></li>
+                                <!-- Agrega más opciones según sea necesario -->
+                            </ul>
                         </li>
+                        
                         {% endif %}
                     </ul>
                     <ul class="navbar-nav mb-2 mb-lg-0">

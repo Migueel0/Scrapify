@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 100vh; background-color: #f8f9fa;">
+    <div class="card shadow-lg border-0 rounded-lg text-center" style="width: 400px; padding: 40px;">
+        <div class="card-body">
+            <h3 class="mb-4" style="font-size: 24px; color: #4a90e2;">Scraping items could take a few minutes</h3>
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem; margin-bottom: 20px;">
+                <span class="sr-only">...</span>
+            </div>
+            <p class="mb-4" style="font-size: 16px; color: #6c757d;">Please be patient while we scrape the items.</p>
+            <a href="/" class="btn btn-primary btn-lg" style="background-color: #4a90e2; border-color: #4a90e2; transition: background-color 0.3s ease, transform 0.2s;">
+                Back to Home
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

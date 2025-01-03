@@ -126,11 +126,6 @@ class Scraper:
                 except Exception as e:
                     print(f"Error saving product: {e}")
         
-
-if __name__ == '__main__':
-    url = 'https://www.amazon.com/'
-    scraper = Scraper(url)
-    scraper.amazon_scraper()
         
         
             
