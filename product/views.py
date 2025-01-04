@@ -27,6 +27,11 @@ def get_all_products(request):
     min_price = request.GET.get('min_price', '')
     max_price = request.GET.get('max_price', '')
     store = request.GET.get('store', '')
+    sort_by = request.GET.get('sort_by', '')
+    valid_sort_fields = ['price', 'rating']
+    sort_by = sort_by if sort_by in valid_sort_fields else None
+
+
     index_dir = "whoosh_index"
     ix = open_dir(index_dir)
     search_results = []
@@ -36,8 +41,12 @@ def get_all_products(request):
         query_parser.add_plugin(FuzzyTermPlugin())
         filters = []
 
-        if query:
-            filters.append(query_parser.parse(query + '~'))
+        if query != '':
+            key_word = query + '~'
+        else:
+            key_word = '*'
+        
+        filters.append(query_parser.parse(key_word))
 
         if min_price or max_price:
             max_price = float(max_price) if max_price else None
@@ -46,40 +55,38 @@ def get_all_products(request):
 
         if store:
             filters.append(Term("store", store.lower()))
-
-        if filters:
-            myquery = And(filters)
-            results = searcher.search(myquery,limit=None)
-            for result in results:
-                search_results.append({
-                    'id': result['id'],
-                    'name': result['name'],
-                    'price': result['price'],
-                    'rating': result['rating'],
-                    'image': result['image'],
-                    'link': result['link'],
-                    'store': result['store']
-                })
-        else:
-            products = Product.objects.all()
-            for product in products:
-                search_results.append({
-                    'id': product.id,
-                    'name': product.name,
-                    'price': product.price,
-                    'rating': product.rating,
-                    'image': product.image,
-                    'link': product.link,
-                    'store': product.store
-                })
             
-    random.seed(4)
-    random.shuffle(search_results)
+        myquery = And(filters)
+            
+        results = searcher.search(myquery, limit=None, sortedby=sort_by)
+        for result in results:
+            search_results.append({
+                'id': result['id'],
+                'name': result['name'],
+                'price': result['price'],
+                'rating': result['rating'],
+                'image': result['image'],
+                'link': result['link'],
+                'store': result['store']
+            })
+    
+    if sort_by is None:
+        random.seed(4)
+        random.shuffle(search_results)
+
     paginator = Paginator(search_results, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    return render(request, 'index.html', {'page_obj': page_obj, 'query': query, 'min_price': min_price, 'max_price': max_price, 'store': store})
+    return render(request, 'index.html', {
+        'page_obj': page_obj,
+        'query': query,
+        'min_price': min_price,
+        'max_price': max_price,
+        'store': store,
+        'sort_by': sort_by
+    })
+
 
 def product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
