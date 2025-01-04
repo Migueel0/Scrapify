@@ -5,6 +5,33 @@
 {% block content %}
 <div class="container py-5">
     <h2 class="text-center mb-5">Our Products</h2>
+    
+    <!-- Formulario de búsqueda y filtros -->
+    <form method="GET" action="" class="mb-4">
+        <div class="input-group mb-3">
+            <input type="text" name="q" class="form-control" placeholder="Search for products..." value="{{ query }}">
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <input type="number" name="min_price" class="form-control" placeholder="Min Price" value="{{ min_price }}">
+            </div>
+            <div class="col-md-4">
+                <input type="number" name="max_price" class="form-control" placeholder="Max Price" value="{{ max_price }}">
+            </div>
+            <div class="col-md-4">
+                <select name="store" class="form-control">
+                    <option value="">All Stores</option>
+                    <option value="Amazon" {% if store == 'Amazon' %}selected{% endif %}>Amazon</option>
+                    <option value="Ebay" {% if store == 'Ebay' %}selected{% endif %}>eBay</option>
+                    <option value="Aliexpress" {% if store == 'Aliexpress' %}selected{% endif %}>Aliexpress</option>
+                </select>
+            </div>
+        </div>
+    </form>
+    
     <div class="row">
         {% for product in page_obj %}
         <div class="col-md-4 mb-4">
@@ -27,7 +54,7 @@
                             {%endif%}
                         </div>
                         {% endif %}
-                        <a href="product/{{ product.id }}" class="btn btn-primary btn-sm" target="_blank">View Product</a>
+                        <a href="product/{{ product.id }}" class="btn btn-primary btn-sm">View Product</a>
                     </div>
                 </div>
             </div>
@@ -39,19 +66,19 @@
         <ul class="pagination justify-content-center">
             {% if page_obj.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if store %}&store={{ store }}{% endif %}" aria-label="Previous">
                     <span aria-hidden="true">&laquo;</span>
                 </a>
             </li>
             {% endif %}
             {% for num in page_obj.paginator.page_range %}
             <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if store %}&store={{ store }}{% endif %}">{{ num }}</a>
             </li>
             {% endfor %}
             {% if page_obj.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if store %}&store={{ store }}{% endif %}" aria-label="Next">
                     <span aria-hidden="true">&raquo;</span>
                 </a>
             </li>
@@ -60,13 +87,3 @@
     </nav>
 </div>
 {% endblock %}
-
-<style>
-    .rating .fa-star {
-        color: #ddd;
-    }
-    
-    .rating .fa-star.checked {
-        color: #f39c12;
-    }
-</style>
