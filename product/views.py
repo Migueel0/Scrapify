@@ -1,6 +1,6 @@
 import random
 import threading
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from product.models import Product
 from utils.scraper import Scraper
@@ -26,3 +26,7 @@ def get_all_products(request):
     page_obj = paginator.get_page(page_number)
     
     return render(request, 'index.html', {'page_obj': page_obj})
+
+def product_detail(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    return render(request, 'product_detail.html', {'product': product})
