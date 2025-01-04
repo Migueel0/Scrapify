@@ -10,4 +10,5 @@ urlpatterns = [
     path('logout/',user_views.logout_view, name = 'logout'),
     path('signup/',user_views.sign_up, name = 'sign_up'),
     path('scraper/<str:store>/',product_views.scraper, name = 'scraper'),
+    path('product/<int:product_id>/', product_views.product_detail, name='product_detail'),
 ]
