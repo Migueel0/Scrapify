@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     
     #Scrapify apps
     'user',
+    'product',
     
 ]
 
