@@ -11,6 +11,7 @@ from whoosh.index import open_dir
 from whoosh.qparser import QueryParser
 from whoosh.qparser import FuzzyTermPlugin
 from whoosh.query import And, Term, NumericRange
+from record.views import add_product_to_record
 
 def scraper_task(store):
     if store == 'amazon':
@@ -95,4 +96,5 @@ def get_all_products(request):
 def product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     reviews = Review.objects.filter(product=product)
+    add_product_to_record(request, product_id)
     return render(request, 'product_detail.html', {'product': product, 'reviews': reviews})

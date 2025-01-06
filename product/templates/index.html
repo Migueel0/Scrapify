@@ -49,13 +49,15 @@
                 </div>
                 <div class="card-body">
                     <h5 class="card-title" style="height: 3em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ product.name }}</h5>
-                    <p class="card-text"><strong>{{ product.price }}</strong></p>
+                    <p class="card-text"><strong>{{ product.price }}$</strong></p>
                     <div class="d-flex justify-content-between align-items-center">
                         <!-- Product Rating -->
                         {% if product.rating %}
                         <div class="rating">
                             {%if product.rating == 5.0%}
                             <span>Rating: 5/5</span>
+                            {%elif product.rating > 5.0%}
+                            <span></span>
                             {%else%}
                             <span>Rating: {{product.rating}}/5</span>
                             {%endif%}
