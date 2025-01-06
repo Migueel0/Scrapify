@@ -9,8 +9,8 @@ def create_index(directory):
     schema = Schema(
         id=NUMERIC(stored=True, unique=True),
         name=TEXT(stored=True),
-        price=NUMERIC(stored=True),
-        rating=NUMERIC(stored=True),
+        price=NUMERIC(stored=True,sortable=True),
+        rating=NUMERIC(stored=True,sortable=True),
         image=TEXT(stored=True),
         link=TEXT(stored=True),
         store = TEXT(stored=True)
@@ -29,7 +29,7 @@ def index_products():
         writer.add_document(
             id=product.id,
             name=product.name,
-            price=float(product.price[1:]),
+            price=float(product.price[1:].replace(',', '')),
             rating=product.rating,
             image=product.image,
             link=product.link,

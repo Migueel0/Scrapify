@@ -17,5 +17,24 @@
             <a href="{{ product.link }}" class="btn btn-primary" target="_blank">View on Amazon</a>
         </div>
     </div>
+
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3>Some reviews</h3>
+            {% for review in reviews %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">{{ review.title }}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ review.date }} by {{ review.author_name }}</h6>
+                    <p class="card-text">{{ review.description }}</p>
+                    <p class="card-text"><strong>Rating:</strong> {{ review.rating }}/5</p>
+                    {% if review.image %}
+                    <img src="{{ review.image }}" class="img-fluid" alt="Review Image" style="max-height: 200px; max-width: 100%; object-fit: contain;">
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 </div>
 {% endblock %}
