@@ -7,7 +7,7 @@ class Review(models.Model):
     author_name = models.CharField(max_length=50,blank=True)
     rating = models.FloatField(null=False)
     title = models.TextField(blank=True)
-    description = models.TextField(blank=True)
+    description = models.TextField(null=True)
     image = models.URLField(null=True)
     date = models.CharField(blank=True, max_length=50)
     

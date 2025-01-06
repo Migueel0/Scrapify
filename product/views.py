@@ -1,8 +1,10 @@
+import os
 import random
 import threading
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from product.models import Product
+from review.models import Review
 from utils.scraper import Scraper
 from utils.whoosh import index_products
 from whoosh.index import open_dir
@@ -15,7 +17,6 @@ def scraper_task(store):
         url = 'https://www.amazon.com/'
         scraper = Scraper(url)
         scraper.amazon_scraper()
-    index_products() #Add all products to whoosh index
 
 def scraper(request, store):
     threading.Thread(target=scraper_task, args=(store,)).start()
@@ -33,61 +34,65 @@ def get_all_products(request):
 
 
     index_dir = "whoosh_index"
-    ix = open_dir(index_dir)
-    search_results = []
-
-    with ix.searcher() as searcher:
-        query_parser = QueryParser("name", ix.schema)
-        query_parser.add_plugin(FuzzyTermPlugin())
-        filters = []
-
-        if query != '':
-            key_word = query + '~'
-        else:
-            key_word = '*'
+    if os.path.exists(index_dir):
+        ix = open_dir(index_dir)
         
-        filters.append(query_parser.parse(key_word))
+        search_results = []
 
-        if min_price or max_price:
-            max_price = float(max_price) if max_price else None
-            min_price = float(min_price) if min_price else None
-            filters.append(NumericRange("price", min_price, max_price))
+        with ix.searcher() as searcher:
+            query_parser = QueryParser("name", ix.schema)
+            query_parser.add_plugin(FuzzyTermPlugin())
+            filters = []
 
-        if store:
-            filters.append(Term("store", store.lower()))
+            if query != '':
+                key_word = query + '~'
+            else:
+                key_word = '*'
             
-        myquery = And(filters)
-            
-        results = searcher.search(myquery, limit=None, sortedby=sort_by)
-        for result in results:
-            search_results.append({
-                'id': result['id'],
-                'name': result['name'],
-                'price': result['price'],
-                'rating': result['rating'],
-                'image': result['image'],
-                'link': result['link'],
-                'store': result['store']
-            })
-    
-    if sort_by is None:
-        random.seed(4)
-        random.shuffle(search_results)
+            filters.append(query_parser.parse(key_word))
 
-    paginator = Paginator(search_results, 12)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
-    return render(request, 'index.html', {
-        'page_obj': page_obj,
-        'query': query,
-        'min_price': min_price,
-        'max_price': max_price,
-        'store': store,
-        'sort_by': sort_by
-    })
+            if min_price or max_price:
+                max_price = float(max_price) if max_price else None
+                min_price = float(min_price) if min_price else None
+                filters.append(NumericRange("price", min_price, max_price))
+
+            if store:
+                filters.append(Term("store", store.lower()))
+                
+            myquery = And(filters)
+                
+            results = searcher.search(myquery, limit=None, sortedby=sort_by)
+            for result in results:
+                search_results.append({
+                    'id': result['id'],
+                    'name': result['name'],
+                    'price': result['price'],
+                    'rating': result['rating'],
+                    'image': result['image'],
+                    'link': result['link'],
+                    'store': result['store']
+                })
+        
+        if sort_by is None:
+            random.seed(4)
+            random.shuffle(search_results)
+
+        paginator = Paginator(search_results, 12)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        return render(request, 'index.html', {
+            'page_obj': page_obj,
+            'query': query,
+            'min_price': min_price,
+            'max_price': max_price,
+            'store': store,
+            'sort_by': sort_by
+        })
+    return render(request, 'index.html')
 
 
 def product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    return render(request, 'product_detail.html', {'product': product})
+    reviews = Review.objects.filter(product=product)
+    return render(request, 'product_detail.html', {'product': product, 'reviews': reviews})

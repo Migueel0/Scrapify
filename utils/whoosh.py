@@ -29,7 +29,7 @@ def index_products():
         writer.add_document(
             id=product.id,
             name=product.name,
-            price=float(product.price[1:]),
+            price=float(product.price[1:].replace(',', '')),
             rating=product.rating,
             image=product.image,
             link=product.link,

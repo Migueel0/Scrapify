@@ -1,10 +1,14 @@
 import random
+import time
 import urllib.request as request
 import urllib
 from bs4 import BeautifulSoup
 import os
 import django
 import sys
+
+from review.models import Review
+from utils.whoosh import index_products
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'scrapify.settings')
@@ -67,6 +71,11 @@ class Scraper:
     def amazon_scraper(self) -> None:
         base_url = self.url
         soup = self.get_soup(base_url)
+        
+        if "captcha" in soup.text:
+            print("Captcha detected. Skipping...")
+            return
+        
         links = []
     
         if soup is None:
@@ -83,50 +92,116 @@ class Scraper:
                 continue
             
             links.append(base_url + link)
-        i = 0
-        for link in links:
-            if i == 5: # scrape only 5 items of each link
-                break
-            i += 1
-            
-            soup = self.get_soup(link)
-            if soup is None:
-                print(f"Failed to scrape base URL: {base_url}")
-                return
-            
-            items_cards = soup.find_all('a', class_='a-link-normal s-no-outline')
-            items_links = [base_url + item['href'] for item in items_cards]
+            for link in links:
 
-            for item_link in items_links:
-                soup = self.get_soup(item_link)
-                try:
-                    name = soup.find('span', id='productTitle').text.strip()
-                    price = (
-                        soup.find('span', class_='a-price-symbol').text +
-                        soup.find('span', class_='a-price-whole').text +
-                        soup.find('span', class_='a-price-fraction').text
-                    )
-                    rating = soup.find('span', id='acrPopover')['title'][:3]
-                    store = 'Amazon'
-                    image = soup.find('img', id='landingImage')['src']
-                    link = item_link
 
-                    product = Product(
-                        name=name,
-                        price=price,
-                        rating=rating,
-                        store=store,
-                        image=image,
-                        link=link
-                    )
-                    if not Product.objects.filter(name=name, price=price, store=store).exists():
-                        product.save()
+                soup = self.get_soup(link)
+                if soup is None:
+                    print(f"Failed to scrape base URL: {base_url}")
+                    return
+                
+                items_cards = soup.find_all('a', class_='a-link-normal s-no-outline')
+                items_links = [base_url + item['href'] for item in items_cards]
+                
+                i = 0
+                for item_link in items_links:
+                    if i >= 3: # scrape only 3 items
+                        break
+                    i += 1
+                    soup = self.get_soup(item_link)
+                    if soup is None:
+                        print(f"Failed to scrape item URL: {item_link}")
+                        continue
+                        
+                    try:
+                        name_tag = soup.find('span', id='productTitle')
+                        name = name_tag.text.strip() if name_tag else None
+                        
+                        symbol_price_tag = soup.find('span', class_='a-price-symbol')
+                        price_whole_tag = soup.find('span', class_='a-price-whole')
+                        price_fraction_tag = soup.find('span', class_='a-price-fraction')
+                        
+                        if symbol_price_tag and price_whole_tag and price_fraction_tag:
+                            price = symbol_price_tag.text + price_whole_tag.text + price_fraction_tag.text
+                            price = price.replace(',', '')
+                        
+                        rating_tag = soup.find('span', id='acrPopover')
+                        rating = rating_tag['title'][:3] if rating_tag else None
+                        
+                        store = 'Amazon'
+                        image_tag = soup.find('img', id='landingImage')
+                        image = image_tag['src'] if image_tag else None
+                        
+                        link = item_link
 
-                    print(f"Saved: {product}")
-                except Exception as e:
-                    print(f"Error saving product: {e}")
-        
-        
-        
+                        product = Product(
+                            name=name,
+                            price=price,
+                            rating=rating,
+                            store=store,
+                            image=image,
+                            link=link
+                        )
+                        if not Product.objects.filter(name=name,store=store).exists():
+                            product.save()
+                            print(f"Product saved: {product}")
+                            index_products()
+                        else:
+                            continue
+                        
+                        reviews = soup.find_all('a', class_='review-title')
+                        reviews_links = [base_url + review['href'] for review in reviews]
+                        i = 0
+                        for review_link in reviews_links:
+                            if i >= 5: # scrape only 5 reviews
+                                break
+                            i += 1
+                            
+                            soup = self.get_soup(review_link)
+                            if soup is None:
+                                print(f"Failed to scrape review URL: {review_link}")
+                                continue
+                            try:
+                                time.sleep(2)
+                                author_name = soup.find('span', class_='a-profile-name')
+                                author_name = author_name.text if author_name else None
+                                
+                                title = soup.find('title')
+                                title = title.text if title else None
+                                
+                                description = soup.find('span', class_='review-text-content')
+                                description = description.text.replace('<br>', '\n') if description else None
+                                                            
+                                rating = soup.find('span', class_='a-icon-alt')
+                                rating = rating.text[:3] if rating else None
+                                
+                                image_tag = soup.find('img', class_='review-image-tile')
+                                image = image_tag['src'] if image_tag else None
+                                
+                                date = soup.find('span', class_='review-date')
+                                date = date.text if date else None
+
+                                
+                                review = Review(
+                                    product=product,
+                                    author_name=author_name,
+                                    title=title,
+                                    description=description,
+                                    rating = rating,
+                                    image=image,
+                                    date=date
+                                )
+                                
+                                if not Review.objects.filter(product=product, author_name=author_name, title=title).exists():
+                                    review.save()
+                                    print(f"Review saved: {review}")
+                                
+                            except Exception as e:
+                                print(f"Error saving review: {e}")
+                    except Exception as e:
+                        print(f"Error saving product: {e}")
             
+            
+            
+                
         
