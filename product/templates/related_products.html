@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<div class="row">
+    <h3>Recommendations based on your record</h3>
+    {% for product in recommendations %}
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm border-light rounded">
+            <!-- Product Image -->
+            <div style="height: 200px; background-color: white; display: flex; align-items: center; justify-content: center;">
+                <img src="{{ product.image }}" class="card-img-top img-fluid" alt="{{ product.name }}" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+            </div>
+            <div class="card-body">
+                <h5 class="card-title" style="height: 3em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ product.name }}</h5>
+                <p class="card-text"><strong>Price:</strong> {{ product.price }}</p>
+                <p class="card-text"><strong>Rating:</strong> {{ product.rating }}/5</p>
+                <p class="card-text"><strong>Store:</strong> {{ product.store }}</p>
+                <a href="{{ product.link }}" class="btn btn-primary btn-sm" target="_blank">View Product</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{%endblock%}

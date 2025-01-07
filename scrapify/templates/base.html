@@ -29,10 +29,10 @@
                             <a class="nav-link active" aria-current="page" href="/">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">History</a>
+                            <a class="nav-link" href="/record/{{user.id}}">Record</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Related products</a>
+                            <a class="nav-link" href="/related_products/">Related products</a>
                         </li>
                         {% if user.is_superuser %}
                         <li class="nav-item dropdown">
