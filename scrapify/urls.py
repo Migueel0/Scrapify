@@ -14,4 +14,5 @@ urlpatterns = [
     path('product/<int:product_id>/', product_views.product_detail, name='product_detail'),
     path('record/<int:user_id>/', record_views.user_record, name='user_record'),
     path('record/add_product/<int:product_id>/<int:user_id>/', record_views.add_product_to_record, name='add_product_to_record'),
+    path('related_products/', product_views.record_recommendations)
 ]

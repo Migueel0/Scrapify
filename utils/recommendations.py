@@ -122,7 +122,6 @@ def getRecommendedItems(prefs, itemMatch, user):
     for (item, rating) in userRatings.items():
         # Loop over items similar to this one
         for (similarity, item2) in itemMatch[item]:
-            print (item2)
             # Ignore if this user has already rated this item
             if item2 in userRatings: continue
             # Weighted sum of rating times similarity

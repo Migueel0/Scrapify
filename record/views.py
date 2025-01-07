@@ -26,3 +26,5 @@ def add_product_to_record(request, product_id):
     record = get_or_create_record(request.user)
     record.products.add(product)
     record.save()
+
+    

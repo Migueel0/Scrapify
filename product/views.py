@@ -5,6 +5,7 @@ from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from product.models import Product
 from review.models import Review
+from user.models import User
 from utils.scraper import Scraper
 from utils.whoosh import index_products
 from whoosh.index import open_dir
@@ -12,6 +13,8 @@ from whoosh.qparser import QueryParser
 from whoosh.qparser import FuzzyTermPlugin
 from whoosh.query import And, Term, NumericRange
 from record.views import add_product_to_record
+from record.models import Record
+from utils.recommendations import getRecommendedItems, topMatches, sim_distance, calculateSimilarItems
 
 def scraper_task(store):
     if store == 'amazon':
@@ -23,6 +26,45 @@ def scraper(request, store):
     threading.Thread(target=scraper_task, args=(store,)).start()
 
     return render(request, 'scraper.html')
+
+def user_recommendations(user_id,n):
+    user = get_object_or_404(User, id=user_id)
+    record = get_object_or_404(Record, user=user)
+    
+    user_prefs = {}
+    user_prefs.setdefault(user.username, {})
+    for prod in record.products.all():
+        user_prefs[user.username][prod.name] = float(prod.price[1:].replace(',', ''))
+        
+    prefs = {}
+    prefs.setdefault(user.username,{})
+    for prod in Product.objects.all():
+        prefs[user.username][prod.name] = float(prod.price[1:].replace(',', ''))
+        
+    itemMatch = calculateSimilarItems(prefs)
+    recommendations = getRecommendedItems(user_prefs, itemMatch, user.username)
+    
+    recommended_products = [Product.objects.get(name=rec[1]) for rec in recommendations][:n]
+    
+    
+    return recommended_products
+
+def product_recommendations(product_id):
+    product = get_object_or_404(Product, id=product_id)
+    
+    prefs = {}
+    for prod in Product.objects.all():
+        if prod.rating is None:
+            prod.rating = 0.0
+        prefs[prod.name] = {
+            'rating': prod.rating,
+            'price': float(prod.price[1:].replace(',', ''))
+        }
+    
+    similar_items = topMatches(prefs, product.name,n=6,similarity=sim_distance)
+    similar_products = [Product.objects.get(name=sim[1]) for sim in similar_items]
+        
+    return similar_products
 
 def get_all_products(request):
     query = request.GET.get('q', '')
@@ -82,19 +124,29 @@ def get_all_products(request):
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
         
+        recommended_products = user_recommendations(request.user.id,6)
+    
+        
         return render(request, 'index.html', {
             'page_obj': page_obj,
             'query': query,
             'min_price': min_price,
             'max_price': max_price,
             'store': store,
-            'sort_by': sort_by
+            'sort_by': sort_by,
+            'recommended_products':recommended_products
         })
     return render(request, 'index.html')
 
+def record_recommendations(request):
+    recommendations = user_recommendations(request.user.id,12)
+    return render(request,'related_products.html',{'recommendations':recommendations})
 
 def product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     reviews = Review.objects.filter(product=product)
     add_product_to_record(request, product_id)
-    return render(request, 'product_detail.html', {'product': product, 'reviews': reviews})
+    recommended_products = product_recommendations(product_id)
+    return render(request, 'product_detail.html', {'product': product, 'reviews': reviews,'recommended_products': recommended_products})
+
+        
