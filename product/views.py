@@ -28,26 +28,26 @@ def scraper(request, store):
     return render(request, 'scraper.html')
 
 def user_recommendations(user_id,n):
-    user = get_object_or_404(User, id=user_id)
-    record = get_object_or_404(Record, user=user)
-    
-    user_prefs = {}
-    user_prefs.setdefault(user.username, {})
-    for prod in record.products.all():
-        user_prefs[user.username][prod.name] = float(prod.price[1:].replace(',', ''))
+    if user_id:
+        user = get_object_or_404(User, id=user_id)
+        record = get_object_or_404(Record,user=user)
         
-    prefs = {}
-    prefs.setdefault(user.username,{})
-    for prod in Product.objects.all():
-        prefs[user.username][prod.name] = float(prod.price[1:].replace(',', ''))
+        user_prefs = {}
+        user_prefs.setdefault(user.username, {})
+        for prod in record.products.all():
+            user_prefs[user.username][prod.name] = float(prod.price[1:].replace(',', ''))
+            
+        prefs = {}
+        prefs.setdefault(user.username,{})
+        for prod in Product.objects.all():
+            prefs[user.username][prod.name] = float(prod.price[1:].replace(',', ''))
+            
+        itemMatch = calculateSimilarItems(prefs)
+        recommendations = getRecommendedItems(user_prefs, itemMatch, user.username)
         
-    itemMatch = calculateSimilarItems(prefs)
-    recommendations = getRecommendedItems(user_prefs, itemMatch, user.username)
-    
-    recommended_products = [Product.objects.get(name=rec[1]) for rec in recommendations][:n]
-    
-    
-    return recommended_products
+        recommended_products = [Product.objects.get(name=rec[1]) for rec in recommendations][:n]
+        
+        return recommended_products
 
 def product_recommendations(product_id):
     product = get_object_or_404(Product, id=product_id)
