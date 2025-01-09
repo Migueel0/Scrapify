@@ -28,12 +28,14 @@
                         <li class="nav-item">
                             <a class="nav-link active" aria-current="page" href="/">Home</a>
                         </li>
+                        {% if user.is_authenticated %}
                         <li class="nav-item">
                             <a class="nav-link" href="/record/{{user.id}}">Record</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="/related_products/">Related products</a>
                         </li>
+                        {%endif%}
                         {% if user.is_superuser %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">

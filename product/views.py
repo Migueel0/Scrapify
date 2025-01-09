@@ -2,6 +2,7 @@ import os
 import random
 import threading
 from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from product.models import Product
 from review.models import Review
@@ -16,38 +17,42 @@ from record.views import add_product_to_record
 from record.models import Record
 from utils.recommendations import getRecommendedItems, topMatches, sim_distance, calculateSimilarItems
 
+@login_required
 def scraper_task(store):
     if store == 'amazon':
         url = 'https://www.amazon.com/'
         scraper = Scraper(url)
         scraper.amazon_scraper()
 
+@login_required
 def scraper(request, store):
     threading.Thread(target=scraper_task, args=(store,)).start()
 
     return render(request, 'scraper.html')
 
+@login_required
 def user_recommendations(user_id,n):
-    user = get_object_or_404(User, id=user_id)
-    record = get_object_or_404(Record, user=user)
-    
-    user_prefs = {}
-    user_prefs.setdefault(user.username, {})
-    for prod in record.products.all():
-        user_prefs[user.username][prod.name] = float(prod.price[1:].replace(',', ''))
+    if user_id:
+        user = get_object_or_404(User, id=user_id)
+        record = get_object_or_404(Record,user=user)
         
-    prefs = {}
-    prefs.setdefault(user.username,{})
-    for prod in Product.objects.all():
-        prefs[user.username][prod.name] = float(prod.price[1:].replace(',', ''))
+        user_prefs = {}
+        user_prefs.setdefault(user.username, {})
+        for prod in record.products.all():
+            user_prefs[user.username][prod.name] = float(prod.price[1:].replace(',', ''))
+            
+        prefs = {}
+        prefs.setdefault(user.username,{})
+        for prod in Product.objects.all():
+            prefs[user.username][prod.name] = float(prod.price[1:].replace(',', ''))
+            
+        itemMatch = calculateSimilarItems(prefs)
+        recommendations = getRecommendedItems(user_prefs, itemMatch, user.username)
         
-    itemMatch = calculateSimilarItems(prefs)
-    recommendations = getRecommendedItems(user_prefs, itemMatch, user.username)
-    
-    recommended_products = [Product.objects.get(name=rec[1]) for rec in recommendations][:n]
-    
-    
-    return recommended_products
+        recommended_products = [Product.objects.get(name=rec[1]) for rec in recommendations][:n]
+        
+        return recommended_products
+
 
 def product_recommendations(product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -138,6 +143,7 @@ def get_all_products(request):
         })
     return render(request, 'index.html')
 
+@login_required
 def record_recommendations(request):
     recommendations = user_recommendations(request.user.id,12)
     return render(request,'related_products.html',{'recommendations':recommendations})
