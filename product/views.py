@@ -162,7 +162,7 @@ def get_all_products(request):
         })
     return render(request, 'index.html')
 
-
+@login_required
 def record_recommendations(request):
     recommendations = user_recommendations(request.user.id,12)
     return render(request,'related_products.html',{'recommendations':recommendations})
@@ -170,7 +170,8 @@ def record_recommendations(request):
 def product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     reviews = Review.objects.filter(product=product)
-    add_product_to_record(request, product_id)
+    if request.user.is_authenticated:
+        add_product_to_record(request, product_id)
     recommended_products = product_recommendations(product_id)
     return render(request, 'product_detail.html', {'product': product, 'reviews': reviews,'recommended_products': recommended_products})
 
