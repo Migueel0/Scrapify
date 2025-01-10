@@ -61,17 +61,17 @@ def user_recommendations(user_id,n):
             user_prefs = {}
             user_prefs.setdefault(user.username, {})
             for prod in record.products.all():
-                user_prefs[user.username][prod.name] = float(prod.price[1:].replace(',', ''))
+                user_prefs[user.username][prod.id] = float(prod.price[1:].replace(',', ''))
                 
             prefs = {}
             prefs.setdefault(user.username,{})
             for prod in Product.objects.all():
-                prefs[user.username][prod.name] = float(prod.price[2:].replace(',', ''))
+                prefs[user.username][prod.id] = float(prod.price[2:].replace(',', ''))
                 
             itemMatch = calculateSimilarItems(prefs)
             recommendations = getRecommendedItems(user_prefs, itemMatch, user.username)
             
-            recommended_products = [Product.objects.get(name=rec[1]) for rec in recommendations][:n]
+            recommended_products = [Product.objects.get(id=rec[1]) for rec in recommendations][:n]
             
             return recommended_products
 
@@ -92,16 +92,16 @@ def product_recommendations(product_id):
     similar_products = [Product.objects.get(id=sim[1]) for sim in similar_items]
         
     return similar_products
-
 def get_all_products(request):
     query = request.GET.get('q', '')
     min_price = request.GET.get('min_price', '')
     max_price = request.GET.get('max_price', '')
     store = request.GET.get('store', '')
     sort_by = request.GET.get('sort_by', '')
+    order = request.GET.get('order', 'asc')  # 'asc' (predeterminado) o 'desc'
     valid_sort_fields = ['price', 'rating']
     sort_by = sort_by if sort_by in valid_sort_fields else None
-
+    order_reverse = order == 'desc'  # True si se requiere orden descendente
 
     index_dir = "whoosh_index"
     if os.path.exists(index_dir):
@@ -131,7 +131,13 @@ def get_all_products(request):
                 
             myquery = And(filters)
                 
-            results = searcher.search(myquery, limit=None, sortedby=sort_by)
+            results = searcher.search(
+                myquery, 
+                limit=None, 
+                sortedby=sort_by, 
+                reverse=order_reverse
+            )
+            
             for result in results:
                 search_results.append({
                     'id': result['id'],
@@ -151,9 +157,8 @@ def get_all_products(request):
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
         
-        recommended_products = user_recommendations(request.user.id,6)
+        recommended_products = user_recommendations(request.user.id, 6)
     
-        
         return render(request, 'index.html', {
             'page_obj': page_obj,
             'query': query,
@@ -161,9 +166,11 @@ def get_all_products(request):
             'max_price': max_price,
             'store': store,
             'sort_by': sort_by,
-            'recommended_products':recommended_products
+            'order': order,
+            'recommended_products': recommended_products
         })
     return render(request, 'index.html')
+
 
 @login_required
 def record_recommendations(request):

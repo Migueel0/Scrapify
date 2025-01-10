@@ -1,42 +1,91 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
 {% load static %}
 
 {% block content %}
 <div class="container py-5">
-    <h2 class="text-center mb-5">Our Products</h2>
+    <h2 class="text-center mb-5">Scrapify</h2>
     
-    <!-- Formulario de búsqueda y filtros -->
-    <form method="GET" action="" class="mb-4">
-        <div class="input-group mb-3">
-            <input type="text" name="q" class="form-control" placeholder="Search for products..." value="{{ query }}">
-            <div class="input-group-append">
-                <button class="btn btn-primary" type="submit">Search</button>
-            </div>
+    <button class="btn btn-primary mb-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasFilters" aria-controls="offcanvasFilters">
+        Filters
+    </button>
+    
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasFilters" aria-labelledby="offcanvasFiltersLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasFiltersLabel">Filters</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
-        <div class="row">
-            <div class="col-md-3">
-                <input type="number" name="min_price" class="form-control" placeholder="Min Price" value="{{ min_price }}">
-            </div>
-            <div class="col-md-3">
-                <input type="number" name="max_price" class="form-control" placeholder="Max Price" value="{{ max_price }}">
-            </div>
-            <div class="col-md-3">
-                <select name="store" class="form-control">
-                    <option value="">All stores</option>
-                    <option value="Amazon" {% if store == "Amazon" %}selected{% endif %}>Amazon</option>
-                    <option value="Ebay" {% if store == "Ebay" %}selected{% endif %}>Ebay</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <select name="sort_by" class="form-control">
-                    <option value="">Sort By</option>
-                    <option value="price" {% if sort_by == "price" %}selected{% endif %}>Price</option>
-                    <option value="rating" {% if sort_by == "rating" %}selected{% endif %}>Rating</option>
-                </select>
-            </div>
+        <div class="offcanvas-body">
+            <form method="GET" action="" class="mb-4">
+                <div class="input-group mb-3">
+                    <input type="text" name="q" class="form-control" placeholder="Search for products..." value="{{ query }}">
+                    <button class="btn btn-primary" type="submit">Search</button>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="min_price" class="form-label">Min Price</label>
+                        <select name="min_price" id="min_price" class="form-select">
+                            <option value="0" {% if min_price == 0 %} selected {% endif %}>$0</option>
+                            <option value="10" {% if min_price == 10 %}selected{% endif %}>$10</option>
+                            <option value="20" {% if min_price == 20 %}selected{% endif %}>$20</option>
+                            <option value="50" {% if min_price == 50 %}selected{% endif %}>$50</option>
+                            <option value="100" {% if min_price == 100 %}selected{% endif %}>$100</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="max_price" class="form-label">Max Price</label>
+                        <select name="max_price" id="max_price" class="form-select">
+                            <option value="" {% if max_price == "" %}selected{% endif %}>None</option>
+                            <option value="50" {% if max_price == 50 %}selected{% endif %}>$50</option>
+                            <option value="100" {% if max_price == 100 %}selected{% endif %}>$100</option>
+                            <option value="200" {% if max_price == 200 %}selected{% endif %}>$200</option>
+                            <option value="500" {% if max_price == 500 %}selected{% endif %}>$500</option>
+                            <option value="1000" {% if max_price == 1000 %}selected{% endif %}>$1000</option>
+                        </select>
+                    </div>
+                    <div class="col-md-12">
+                        <label for="store_all" class="form-label">Store</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="store" id="store_all" value="" {% if store == "" %}checked{% endif %}>
+                            <label class="form-check-label" for="store_all">
+                                All Stores
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="store" id="store_amazon" value="amazon" {% if store == "amazon" %}checked{% endif %}>
+                            <label class="form-check-label" for="store_amazon">
+                                Amazon
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="store" id="store_ebay" value="ebay" {% if store == "ebay" %}checked{% endif %}>
+                            <label class="form-check-label" for="store_ebay">
+                                eBay
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="sort_by" class="form-label">Sort By</label>
+                        <select name="sort_by" id="sort_by" class="form-select">
+                            <option value="">Sort By</option>
+                            <option value="price" {% if sort_by == "price" %}selected{% endif %}>Price</option>
+                            <option value="rating" {% if sort_by == "rating" %}selected{% endif %}>Rating</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="order" class="form-label">Order</label>
+                        <select name="order" id="order" class="form-select">
+                            <option value="asc" {% if order == "asc" %}selected{% endif %}>Ascending</option>
+                            <option value="desc" {% if order == "desc" %}selected{% endif %}>Descending</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="d-grid mt-3">
+                    <button class="btn btn-success" type="submit">Apply Filters</button>
+                </div>
+            </form>
         </div>
-    </form>
+    </div>
     
     <div class="row">
         {% for product in page_obj %}
@@ -53,13 +102,13 @@
                         <!-- Product Rating -->
                         {% if product.rating %}
                         <div class="rating">
-                            {%if product.rating == 5.0%}
+                            {% if product.rating == 5.0 %}
                             <span>Rating: 5/5</span>
-                            {%elif product.rating > 5.0%}
+                            {% elif product.rating > 5.0 %}
                             <span></span>
-                            {%else%}
-                            <span>Rating: {{product.rating}}/5</span>
-                            {%endif%}
+                            {% else %}
+                            <span>Rating: {{ product.rating }}/5</span>
+                            {% endif %}
                         </div>
                         {% endif %}
                         <a href="product/{{ product.id }}" class="btn btn-primary btn-sm">View Product</a>
@@ -90,7 +139,7 @@
         </div>
         {% endfor %}
     </div>
-    {%endif%}
+    {% endif %}
     
     <nav aria-label="Page navigation">
         <ul class="pagination justify-content-center">
