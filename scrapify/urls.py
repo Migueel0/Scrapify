@@ -12,7 +12,7 @@ urlpatterns = [
     path('signup/',user_views.sign_up, name = 'sign_up'),
     path('scraper/<str:store>/',product_views.scraper, name = 'scraper'),
     path('product/<int:product_id>/', product_views.product_detail, name='product_detail'),
-    path('record/<int:user_id>/', record_views.user_record, name='user_record'),
+    path('record/', record_views.user_record, name='user_record'),
     path('record/add_product/<int:product_id>/<int:user_id>/', record_views.add_product_to_record, name='add_product_to_record'),
     path('related_products/', product_views.record_recommendations)
 ]
