@@ -43,9 +43,8 @@
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                                 <li><a href="{% url 'scraper' store='amazon' %}">Amazon products</a></li>
-                                <li><a class="dropdown-item" href="#">Option 2</a></li>
-                                <li><a class="dropdown-item" href="#">Option 3</a></li>
-                                <!-- Agrega más opciones según sea necesario -->
+                                <li><a href="{% url 'scraper' store='ebay' %}">Ebay products</a></li>
+                                <li><a href="{% url 'scraper' store='all' %}">All stores</a></li>
                             </ul>
                         </li>
                         

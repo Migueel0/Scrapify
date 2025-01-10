@@ -1,4 +1,5 @@
 import random
+import re
 import time
 import urllib.request as request
 import urllib
@@ -7,13 +8,13 @@ import os
 import django
 import sys
 
-from review.models import Review
 from utils.whoosh import index_products
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'scrapify.settings')
 django.setup()
 
+from review.models import Review
 from product.models import Product
 
 USER_AGENTS = [
@@ -72,15 +73,16 @@ class Scraper:
         base_url = self.url
         soup = self.get_soup(base_url)
         
+        if soup is None:
+            print(f"Failed to scrape base URL: {base_url}")
+            return
+        
         if "captcha" in soup.text:
             print("Captcha detected. Skipping...")
             return
         
         links = []
     
-        if soup is None:
-            print(f"Failed to scrape base URL: {base_url}")
-            return
         
         cards = soup.find_all('div', class_='a-cardui')
         
@@ -123,10 +125,11 @@ class Scraper:
                         
                         if symbol_price_tag and price_whole_tag and price_fraction_tag:
                             price = symbol_price_tag.text + price_whole_tag.text + price_fraction_tag.text
-                            price = price.replace(',', '')
+                            price_text = price.replace(',', '').strip()
+                            match = re.search(r'\$\d+(\.\d{1,2})?', price_text)
+                            price = match.group(0) if match else '$0.00'
                         
-                        rating_tag = soup.find('span', id='acrPopover')
-                        rating = rating_tag['title'][:3] if rating_tag else None
+                        rating = soup.find('span', id='acrPopover')['title'][:3]
                         
                         store = 'Amazon'
                         image_tag = soup.find('img', id='landingImage')
@@ -195,13 +198,79 @@ class Scraper:
                                 if not Review.objects.filter(product=product, author_name=author_name, title=title).exists():
                                     review.save()
                                     print(f"Review saved: {review}")
-                                
-                            except Exception as e:
-                                print(f"Error saving review: {e}")
-                    except Exception as e:
-                        print(f"Error saving product: {e}")
+                            except Exception:
+                                continue
+                    except Exception:
+                        continue
             
             
-            
-                
+    def ebay_scraper(self) -> None:
+        base_url = self.url
+        soup = self.get_soup(base_url)
         
+        if soup is None:
+            print(f"Failed to scrape base URL: {base_url}")
+            return
+        
+        if "captcha" in soup.text:
+            print("Captcha detected. Skipping...")
+            return
+        
+        links =  set(soup.find_all('a', itemprop = 'url'))
+        
+        for link in links:
+            try:
+                link = link['href']
+                soup = self.get_soup(link)
+                
+                if soup is not None:
+                    time.sleep(2)
+                    name = soup.find('h1',class_='x-item-title__mainTitle').text
+                    price_text = soup.find('div',class_ = 'x-price-primary').text.strip().replace(',','')
+                    match = re.search(r'\$\d+(\.\d{1,2})?', price_text)
+                    price = match.group(0) if match else '$0.00'
+
+                    store = 'Ebay'
+                    image_tag = soup.find('img',{'data-idx':'0'})
+                    image =  image_tag['src'] if image_tag.has_attr('src') else image_tag['data-src']
+                    rating = float(soup.find('span',class_='ux-summary__start--rating').text)
+                
+                    product = Product(
+                        name=name,
+                        price=price,
+                        store=store,
+                        link=link,
+                        image=image,
+                        rating=rating
+                    )
+                    
+                    if not Product.objects.filter(name=name,store=store,link=link).exists():
+                        product.save()
+                        print(f'Product saved:{product}')
+                        index_products()
+                        
+                    reviews = soup.find_all('li',class_='vim x-review-section')
+                    for review in reviews:
+                        try: 
+                            title = review.find('h4',class_='x-review-section__title').text
+                            description = review.find('div', class_ = 'x-review-section__content').text
+                            author_name = review.find('div',class_='x-review-section__author').text.strip()[2:]
+                            rating = float(review.find('div',class_='star-rating')['data-stars'][:1])
+                            date = review.find('span',class_='x-review-section__date').text
+                            
+                            review = Review(
+                                product=product,
+                                title=title,
+                                description=description,
+                                author_name= author_name,
+                                rating = rating,
+                                date=date
+                            )
+                            
+                            if not Review.objects.filter(product=product,author_name=author_name,title=title).exists():
+                                review.save()
+                                print(f'Review saved:{review}')
+                        except Exception:
+                            continue
+            except Exception:
+                continue
