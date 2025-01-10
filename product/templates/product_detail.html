@@ -14,7 +14,7 @@
             <h2>{{ product.name }}</h2>
             <p><strong>Price:</strong> {{ product.price }}</p>
             <p><strong>Rating:</strong> {{ product.rating }}/5</p>
-            <a href="{{ product.link }}" class="btn btn-primary" target="_blank">View on Amazon</a>
+            <a href="{{ product.link }}" class="btn btn-primary" target="_blank">View on {{product.store}}</a>
         </div>
     </div>
 
@@ -30,7 +30,7 @@
                     <p class="card-text">{{ review.description }}</p>
                     <p class="card-text"><strong>Rating:</strong> {{ review.rating }}/5</p>
                     {% if review.image %}
-                    <img src="{{ review.image }}" class="img-fluid" alt="Review Image" style="max-height: 200px; max-width: 100%; object-fit: contain;">
+                    <img src="{{ review.image }}" class="img-fluid" alt="Review" style="max-height: 200px; max-width: 100%; object-fit: contain;">
                     {% endif %}
                 </div>
             </div>
@@ -52,7 +52,7 @@
                     <h6 class="card-title" style="height: 2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ product.name }}</h6>
                     <p class="card-text"><strong>Price:</strong> {{ product.price }}</p>
                     <p class="card-text"><strong>Rating:</strong> {{ product.rating }}/5</p>
-                    <a href="{{ product.link }}" class="btn btn-primary btn-sm">View Product</a>
+                    <a href="/product/{{product.id}}" class="btn btn-primary btn-sm">View Product</a>
                 </div>
             </div>
         </div>
