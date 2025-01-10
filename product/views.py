@@ -2,13 +2,13 @@ import os
 import random
 import threading
 from django.shortcuts import render, get_object_or_404
+from django.core.exceptions import PermissionDenied
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from product.models import Product
 from review.models import Review
 from user.models import User
 from utils.scraper import Scraper
-from utils.whoosh import index_products
 from whoosh.index import open_dir
 from whoosh.qparser import QueryParser
 from whoosh.qparser import FuzzyTermPlugin
@@ -41,9 +41,12 @@ def scraper_task(store):
     elif store == 'all':
         scrape_all()
         
+        
 
 @login_required
 def scraper(request, store):
+    if not request.user.is_superuser:
+        raise PermissionDenied 
     threading.Thread(target=scraper_task, args=(store,)).start()
 
     return render(request, 'scraper.html')
