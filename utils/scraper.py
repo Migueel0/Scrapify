@@ -1,4 +1,5 @@
 import random
+import re
 import time
 import urllib.request as request
 import urllib
@@ -7,7 +8,7 @@ import os
 import django
 import sys
 
-#from utils.whoosh import index_products
+from utils.whoosh import index_products
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'scrapify.settings')
@@ -124,7 +125,9 @@ class Scraper:
                         
                         if symbol_price_tag and price_whole_tag and price_fraction_tag:
                             price = symbol_price_tag.text + price_whole_tag.text + price_fraction_tag.text
-                            price = price.replace(',', '')
+                            price_text = price.replace(',', '').strip()
+                            match = re.search(r'\$\d+(\.\d{1,2})?', price_text)
+                            price = match.group(0) if match else '$0.00'
                         
                         rating = soup.find('span', id='acrPopover')['title'][:3]
                         
@@ -197,7 +200,7 @@ class Scraper:
                                     print(f"Review saved: {review}")
                             except Exception:
                                 continue
-                    except Exception :
+                    except Exception:
                         continue
             
             
@@ -223,7 +226,10 @@ class Scraper:
                 if soup is not None:
                     time.sleep(2)
                     name = soup.find('h1',class_='x-item-title__mainTitle').text
-                    price = soup.find('div',class_ = 'x-price-primary').text.strip()[2:]
+                    price_text = soup.find('div',class_ = 'x-price-primary').text.strip().replace(',','')
+                    match = re.search(r'\$\d+(\.\d{1,2})?', price_text)
+                    price = match.group(0) if match else '$0.00'
+
                     store = 'Ebay'
                     image_tag = soup.find('img',{'data-idx':'0'})
                     image =  image_tag['src'] if image_tag.has_attr('src') else image_tag['data-src']
@@ -241,6 +247,7 @@ class Scraper:
                     if not Product.objects.filter(name=name,store=store,link=link).exists():
                         product.save()
                         print(f'Product saved:{product}')
+                        index_products()
                         
                     reviews = soup.find_all('li',class_='vim x-review-section')
                     for review in reviews:
@@ -267,4 +274,3 @@ class Scraper:
                             continue
             except Exception:
                 continue
-    

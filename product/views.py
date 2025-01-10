@@ -17,12 +17,30 @@ from record.views import add_product_to_record
 from record.models import Record
 from utils.recommendations import getRecommendedItems, topMatches, sim_distance, calculateSimilarItems
 
-@login_required
+def amazon_scraper():
+    url = 'https://www.amazon.com/'
+    scraper = Scraper(url)
+    scraper.amazon_scraper()
+
+def ebay_scraper():
+    url = 'https://ebay.com/deals'
+    scraper = Scraper(url)
+    scraper.ebay_scraper()
+
+def scrape_all():
+    threading.Thread(target=amazon_scraper).start()
+    threading.Thread(target=ebay_scraper).start()
+    
 def scraper_task(store):
     if store == 'amazon':
-        url = 'https://www.amazon.com/'
-        scraper = Scraper(url)
-        scraper.amazon_scraper()
+        amazon_scraper()
+
+    elif store == 'ebay':
+        ebay_scraper()
+        
+    elif store == 'all':
+        scrape_all()
+        
 
 @login_required
 def scraper(request, store):
@@ -30,28 +48,29 @@ def scraper(request, store):
 
     return render(request, 'scraper.html')
 
-@login_required
+
 def user_recommendations(user_id,n):
     if user_id:
         user = get_object_or_404(User, id=user_id)
-        record = get_object_or_404(Record,user=user)
+        if Record.objects.filter(user=user).exists():
+            record = get_object_or_404(Record, user=user)
         
-        user_prefs = {}
-        user_prefs.setdefault(user.username, {})
-        for prod in record.products.all():
-            user_prefs[user.username][prod.name] = float(prod.price[1:].replace(',', ''))
+            user_prefs = {}
+            user_prefs.setdefault(user.username, {})
+            for prod in record.products.all():
+                user_prefs[user.username][prod.name] = float(prod.price[1:].replace(',', ''))
+                
+            prefs = {}
+            prefs.setdefault(user.username,{})
+            for prod in Product.objects.all():
+                prefs[user.username][prod.name] = float(prod.price[2:].replace(',', ''))
+                
+            itemMatch = calculateSimilarItems(prefs)
+            recommendations = getRecommendedItems(user_prefs, itemMatch, user.username)
             
-        prefs = {}
-        prefs.setdefault(user.username,{})
-        for prod in Product.objects.all():
-            prefs[user.username][prod.name] = float(prod.price[1:].replace(',', ''))
+            recommended_products = [Product.objects.get(name=rec[1]) for rec in recommendations][:n]
             
-        itemMatch = calculateSimilarItems(prefs)
-        recommendations = getRecommendedItems(user_prefs, itemMatch, user.username)
-        
-        recommended_products = [Product.objects.get(name=rec[1]) for rec in recommendations][:n]
-        
-        return recommended_products
+            return recommended_products
 
 
 def product_recommendations(product_id):
@@ -61,13 +80,13 @@ def product_recommendations(product_id):
     for prod in Product.objects.all():
         if prod.rating is None:
             prod.rating = 0.0
-        prefs[prod.name] = {
+        prefs[prod.id] = {
             'rating': prod.rating,
             'price': float(prod.price[1:].replace(',', ''))
         }
     
-    similar_items = topMatches(prefs, product.name,n=6,similarity=sim_distance)
-    similar_products = [Product.objects.get(name=sim[1]) for sim in similar_items]
+    similar_items = topMatches(prefs, product.id,n=6,similarity=sim_distance)
+    similar_products = [Product.objects.get(id=sim[1]) for sim in similar_items]
         
     return similar_products
 
@@ -143,7 +162,7 @@ def get_all_products(request):
         })
     return render(request, 'index.html')
 
-@login_required
+
 def record_recommendations(request):
     recommendations = user_recommendations(request.user.id,12)
     return render(request,'related_products.html',{'recommendations':recommendations})

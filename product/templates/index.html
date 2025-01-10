@@ -25,7 +25,6 @@
                 <select name="store" class="form-control">
                     <option value="">All stores</option>
                     <option value="Amazon" {% if store == "Amazon" %}selected{% endif %}>Amazon</option>
-                    <option value="Aliexpress" {% if store == "Aliexpress" %}selected{% endif %}>Aliexpress</option>
                     <option value="Ebay" {% if store == "Ebay" %}selected{% endif %}>Ebay</option>
                 </select>
             </div>
@@ -78,7 +77,6 @@
         {% for product in recommended_products %}
         <div class="col-md-2 mb-4">
             <div class="card shadow-sm border-light rounded recommended-product">
-                <!-- Product Image -->
                 <div style="height: 100px; background-color: white; display: flex; align-items: center; justify-content: center;">
                     <img src="{{ product.image }}" class="card-img-top img-fluid" alt="{{ product.name }}" style="max-height: 100%; max-width: 100%; object-fit: contain;">
                 </div>
